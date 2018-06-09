@@ -1,9 +1,13 @@
 //============================================================================
 // Name        : Formato_Comprimido_Fila.cpp
-// Author      : lilith.bvndy
+// Author 	   :
+//               Carmona Larrotta, Carlos Arturo - 1532083
+//               García Correa, Diana Marcela - 1531722
+//               Parra Bravo, Diego Alejandro - 1529788
+//               Suárez VIllegas, Andrés Felipe - 1527878
 // Version     :
 // Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
+// Description :
 //============================================================================
 
 #include <iostream>
@@ -13,9 +17,11 @@
 #include<algorithm>
 #include <sstream>
 #include <fstream>
+#include <stdio.h>
+#include <string.h>
 using namespace std;
 
-void creaRepresentacion(int **matriz, int val[],int fs[], int cls[], int f, int c, string des){
+void creaRepresentacion(int **matriz, vector<int> &val,vector<int> &fs,vector<int> &cls, int f, int c, string des){
 	//Pasa de una matriz a su representación. Permite almacenar la representación en un archivo.
 	ofstream destino;
 	destino.open (des.c_str());
@@ -26,17 +32,17 @@ void creaRepresentacion(int **matriz, int val[],int fs[], int cls[], int f, int 
 	int aux=0;
 	for (int i = 0; i < f; i++){
 		std::ostringstream d;
-		fs[i]=cont;
+		fs.push_back(cont);
 		d <<" "<< fs[i];
 		filas += d.str();
 		for (int j = 0; j < c; j++){
 			if(matriz[i][j]!=0){
 				std::ostringstream a;
-				val[aux] = matriz[i][j];
-				a <<" "<< val[aux];
+				val.push_back(matriz[i][j]);
+				a <<" "<< matriz[i][j];
 				valores += a.str();
 				std::ostringstream b;
-				cls[aux] = j;
+				cls.push_back(j);
 				b <<" "<< j;
 				columnas += b.str();
 				aux++;
@@ -45,7 +51,7 @@ void creaRepresentacion(int **matriz, int val[],int fs[], int cls[], int f, int 
 		}
 	}
 	std::ostringstream e;
-	fs[f]=aux;
+	fs.push_back(aux);
 	e <<" "<< aux;
 	filas += e.str();
 
@@ -56,21 +62,20 @@ void creaRepresentacion(int **matriz, int val[],int fs[], int cls[], int f, int 
 	destino.close();
 }
 
-void obtenerMatriz(int val[],int fs[], int cls[],int f, int c, int tam, string des){
+void obtenerMatriz(vector<int> &val,vector<int> &fs,vector<int> &cls, int f, int c, string des){
 	ofstream destino;
 	destino.open (des.c_str());
 	destino << f <<" "<<c<<endl;
 
-	int matriz[f][c]={0,0,0};
-	for(int i=0;i<f;i++){
-		for(int j=0;j<c;j++){
-			matriz[i][j]=0;
-		}
-	}
+	int **matriz = (int **) malloc(sizeof(int *) * f);
+	int *mem = (int*)malloc(sizeof(int) * (f * c));
+	memset(mem, 0x0, sizeof(int) * (f * c));
+	for (int i = 0; i < f; i++)
+		matriz[i] = mem + i * c;
 
 	for(int i=0;i<f;i++){
-		for(int j=fs[i];j<fs[i+1];j++)
-			matriz[i][cls[j]]=val[j];
+		for(int j=fs.at(i);j<fs.at(i+1);j++)
+			matriz[i][cls.at(j)]=val.at(j);
 	}
 
 	for(int x=0;x<f;x++){
@@ -82,21 +87,22 @@ void obtenerMatriz(int val[],int fs[], int cls[],int f, int c, int tam, string d
 	destino.close();
 }
 
-int obtenerElemento(int val[],int fs[], int cls[], int f, int c, int tamF){
-	for (int i = fs[f]; i < fs[f+1]; i++){
-		if(cls[i]==c)
-			return val[i];
+int obtenerElemento(vector<int> &val,vector<int> &fs,vector<int> &cls, int f, int c){
+	for (int i = fs.at(f); i < fs.at(f+1); i++){
+		if(cls.at(i)==c)
+			return val.at(i);
 	}
 	return 0;
 }
 
-void obtenerColumna(int val[],int fs[], int cls[], int columna, int nFil, int tamF){
+void obtenerColumna(vector<int> &val,vector<int> &fs,vector<int> &cls, int columna, int nFil){
+	int tamC = cls.size();
 	int c[nFil]={0};
-	for(int i=0;i<tamF;i++){
-		if(cls[i]==columna){
+	for(int i=0;i<tamC;i++){
+		if(cls.at(i)==columna){
 			for(int j=0;j<nFil;j++){
-				if(i>=fs[j] && i<fs[j+1]){
-					c[j]=val[i];
+				if(i>=fs.at(j) && i<fs.at(j+1)){
+					c[j]=val.at(i);
 					break;
 				}
 			}
@@ -109,10 +115,10 @@ void obtenerColumna(int val[],int fs[], int cls[], int columna, int nFil, int ta
 	}
 }
 
-void obtenerFila(int val[],int fs[], int cls[], int fila, int nCol){
+void obtenerFila(vector<int> &val,vector<int> &fs,vector<int> &cls, int fila, int nCol){
 	int f[nCol]={0};
-	for (int i = fs[fila]; i < fs[fila+1]; i++){
-		f[cls[i]]=val[i];
+	for (int i = fs.at(fila); i < fs.at(fila+1); i++){
+		f[cls.at(i)]=val.at(i);
 	}
 	cout<<"Fila "<<fila<<": "<<endl;
 	for(int i=0; i<nCol; i++){
@@ -121,99 +127,82 @@ void obtenerFila(int val[],int fs[], int cls[], int fila, int nCol){
 	cout<<endl;
 }
 
-void modificarPosicion(int val[],int fs[], int cls[], int fila, int columna, int e, int ct, int ft,string des){
+void modificarPosicion(vector<int> &val,vector<int> &fs,vector<int> &cls, int fila, int columna, int e,string des){
+	int ft = fs.size();
+	int ct = cls.size();
 	ofstream destino;
 	destino.open (des.c_str());
-	bool aux=false;
-	for (int i = fs[fila]; i < fs[fila+1]; i++){
-		if(cls[i]==columna){
-			val[i]=e;
-			aux=true;
+	bool x=true;
+	for (int i = fs.at(fila); i < fs.at(fila+1); i++){
+		if(cls.at(i)==columna){
+			val.at(i)=e;
+			x=false;
 			break;
 		}
 	}
 
-	if(!aux){
-		int v2[ct+1];
-		int cl2[ct+1];
-		int t=0;
-		int k=0;
-		for(int i=0;i<ct+1;i++){
-			v2[i] = val[k];
-			cl2[i] = cls[k];
-			if(i==fs[fila] && cl2[i]>columna && t==0){
-				v2[i] = e;
-				cl2[i]=fila;
-				t=1;
+	if(x){
+		for (int i = fs.at(fila); i < fs.at(fila+1); i++){
+			if((cls.at(i)-1)==columna){
+				val.insert(val.begin()+i, e);
+				cls.insert(cls.begin()+i, columna);
+				ct++;
+				break;
 			}
-			else
-				k++;
+			else if((cls.at(i)+1)==columna){
+				val.insert(val.begin()+i+1, e);
+				cls.insert(cls.begin()+i+1, columna);
+				ct++;
+				break;
+			}
 		}
-		destino << "Valores = [ ";
-		for(int i=0;i<ct+1;i++){
-			destino << v2[i] << " ";
-		}
-		destino <<"]"<<endl;
-		destino <<"Columnas = [ ";
-		for(int i=0;i<ct+1;i++){
-			destino << cl2[i] << " ";
-		}
-		destino <<"]"<<endl;
-		destino <<"cFilas = [ ";
-		for(int i=0;i<ft;i++){
-			if(i>fila && i<ft-1)
-				fs[i]=fs[i]+1;
-			destino << fs[i] << " ";
-		}
-		destino <<"]"<<endl;
-		destino.close();
 	}
-	else{
-		destino << "Valores = [ ";
-		for(int i=0;i<ct;i++){
-			destino << val[i] << " ";
-		}
-		destino <<"]"<<endl;
-		destino <<"Columnas = [ ";
-		for(int i=0;i<ct;i++){
-			destino << cls[i] << " ";
-		}
-		destino <<"]"<<endl;
-		destino <<"cFilas = [ ";
-		for(int i=0;i<ft;i++){
-			destino << fs[i] << " ";
-		}
-		destino <<"]"<<endl;
-		destino.close();
+	if(x)
+		for(int i=fila+1;i<ft;i++)
+			fs.at(i) = fs.at(i)+1;
+
+	destino << "Valores = [ ";
+	for(int i=0;i<ct;i++){
+		destino << val.at(i) << " ";
 	}
-
-
+	destino <<"]"<<endl;
+	destino <<"Columnas = [ ";
+	for(int i=0;i<ct;i++){
+		destino << cls.at(i) << " ";
+	}
+	destino <<"]"<<endl;
+	destino <<"cFilas = [ ";
+	for(int i=0;i<ft;i++){
+		destino << fs.at(i) << " ";
+	}
+	destino <<"]"<<endl;
+	destino.close();
 }
 
-void matrizCuadrada(int val[],int fs[], int cls[], int f, int c, int tamF, string des){
+void matrizCuadrada(vector<int> &val,vector<int> &fs,vector<int> &cls, int f, int c, string des){
+	int tamC = cls.size();
 	ofstream destino;
 	destino.open (des.c_str());
 	destino << f <<" "<<c<<endl;
-	int matriz[f][c]={0,0,0};
-	for(int i=0;i<f;i++){
-		for(int j=0;j<f;j++){
-			matriz[i][j]=0;
-		}
-	}
+	int **matriz = (int **) malloc(sizeof(int *) * f);
+	int *mem = (int*)malloc(sizeof(int) * (f * c));
+	memset(mem, 0x0, sizeof(int) * (f * c));
+	for (int i = 0; i < f; i++)
+		matriz[i] = mem + i * c;
 
 	for(int j=0;j<f;j++){
-		int ini = fs[j];
-		int fin=fs[j+1];
+		int ini = fs.at(j);
+		int fin=fs.at(j+1);
 		int aux=0;
 		int r=0;
 
 		while(aux<c){
 			int valor=0;
 			for(int i=ini;i<fin;i++){ //vuelve a buscar con la columna 0 por la siguiente fila=aux
-				for(int k=r;k<tamF;k++){
-					if(cls[k]==aux){
-						if(k>=fs[cls[i]]&&k<fs[cls[i]+1]){
-							valor += val[i]*val[k];
+				for(int k=r;k<tamC;k++){
+					if(cls.at(k)==aux){
+						if(k>=fs.at(cls.at(i))&&k<fs.at(cls.at(i)+1)){
+							valor += val.at(i)*val.at(k);
 							r=k+1;
 							break;
 						}
@@ -236,115 +225,73 @@ void matrizCuadrada(int val[],int fs[], int cls[], int f, int c, int tamF, strin
 	destino.close();
 }
 
-void sort(int val[], int cls[],  int ci[],int p, int q, int r){
-    int i, j, k;
-    int n1 = q - p + 1;
-    int n2 =  r - q;
-    int izq[n1],der[n2];
-    int vl1[n1], vl2[n2];
-    int aux1[n1],aux2[n2];
-    for (i = 0; i < n1; i++){
-    	aux1[i] = ci[p + i];
-       	izq[i] = cls[p + i];
-    	vl1[i] = val[p+i];
+
+void organizarColumnas(vector<int> &auxC,vector<int> &auxCi){
+	vector<int> orden(auxC.size());
+
+    int count[auxC.size() + 1];
+    memset(count, 0, sizeof(count));
+
+    for(unsigned i = 0; i<auxC.size(); i++)
+        count[auxC.at(i)]++;
+
+    for (unsigned i = 1; i <= auxC.size(); i++)
+        count[i] += count[i-1];
+
+    for (unsigned i = 0; i<auxC.size(); i++){
+    	int x = auxC.at(i);
+    	orden.at(count[x]-1) = i;
+        count[auxC.at(i)]--;
     }
 
-    for (j = 0; j < n2; j++){
-    	aux2[j] = ci[q + 1+ j];
-        der[j] = cls[q + 1+ j];
-        vl2[j] =  val[q + 1+ j];
-    }
-
-    i = 0;
-    j = 0;
-    k = p;
-    while (i < n1 && j < n2)
-    {
-        if (izq[i] <= der[j])
-        {
-        	ci[k] = aux1[i];
-        	cls[k] = izq[i];
-        	val[k] = vl1[i];
-        	i++;
-        }
-        else
-        {
-        	ci[k] = aux2[j];
-        	cls[k] = der[j];
-        	val[k] = vl2[j];
-        	j++;
-        }
-        k++;
-    }
-
-    while (i < n1)
-    {
-    	ci[k] = aux1[i];
-    	cls[k] = izq[i];
-    	val[k] = vl1[i];
-    	k++;
-    	i++;
-    }
-
-    while (j < n2)
-    {
-    	ci[k] = aux2[j];
-    	cls[k] = der[j];
-    	val[k] = vl2[j];
-    	j++;
-    	k++;
-    }
-}
-
-void mergeSort(int val[], int cls[], int ci[],int p, int r){
-	if(p<r){
-		int q = p+(r-p)/2;
-		mergeSort(val, cls,ci,p,q);
-		mergeSort(val, cls,ci,q+1,r);
-		sort(val, cls,ci,p,q,r);
-	}
+    for (unsigned i = 0; i<auxC.size(); i++)
+    	auxCi.at(i) = orden.at(i);
 
 }
 
-void matrizTranspuesta(int val[],int fs[], int cls[], int tam, int c, string des){
+void matrizTranspuesta(vector<int> &val,vector<int> &fs,vector<int> &cls, string des){
+	int tamC = cls.size();
+	int f = fs.size()-1;
 	ofstream destino;
 	destino.open (des.c_str());
-	int v2[tam];
-	int c2[tam];
-	int ci[tam]; //indices auxiliares
-	for(int i=0;i<tam;i++)
-		ci[i]=i;
-	copy(val,val+tam, v2);
-	copy(cls,cls+tam, c2);
+	vector<int> auxC;
+	vector<int> auxCi;
+
+	for(int i=0;i<tamC;i++)
+		auxCi.push_back(i);
+
+	organizarColumnas(cls, auxCi);
 	destino << "Valores = [ ";
-	mergeSort(v2,c2,ci,0,tam-1);
-	for(int i=0;i<tam;i++){
-		destino << v2[i] << " ";
+	for(int i=0;i<tamC;i++){
+		auxC.push_back(cls.at(auxCi.at(i)));
+		destino << val.at(auxCi.at(i)) << " ";
 	}
 	destino <<"]"<<endl;
-	for(int i=0;i<c;i++){
-		for(int j=0;j<tam;j++){
-			int ini=fs[i];
-			int fin=fs[i+1];
-				if(ci[j]>=ini&&ci[j]<fin){
-					c2[j]=i;
-				}
+	destino <<"Columnas = [ ";
+	int cont=0;
+	for(int j=0;j<f;j++){
+		int ini=fs.at(j);
+		int fin=fs.at(j+1);
+		if(cont>tamC-1)
+			break;
+		if(auxCi.at(cont)>=ini&&auxCi.at(cont)<fin){
+			destino << j << " ";
+			cont++;
+			j=-1;
 		}
 	}
 
-	destino <<"Columnas = [ ";
-	for(int i=0;i<tam;i++){
-		destino << c2[i] << " ";
-	}
 	destino <<"]"<<endl;
 	destino <<"cFilas = [ ";
-	int aux=c2[0];
+	int aux=auxC.at(0);
 	destino << 0 << " ";
-	for(int i=0;i<tam;i++){
-		if(c2[i]==aux-1)
+	for(int i=1;i<tamC;i++){
+		if(auxC.at(i)>aux){
 			destino << i << " ";
+			aux++;
+		}
 	}
-	destino <<tam<<" ]"<<endl;
+	destino <<tamC<<" ]"<<endl;
 	destino.close();
 }
 
@@ -383,9 +330,10 @@ int main() {
 				}
 	}
 
-	int valores[tam];
-	int filas[f+1];
-	int columnas[tam];
+	vector<int>valores;
+	vector<int>filas;
+	vector<int>columnas;
+
 	creaRepresentacion(matriz, valores, filas, columnas, f, c, destino);
 	cout << "Representación Guardada Exitosamente En " << destino<<endl;
 
@@ -411,7 +359,7 @@ int main() {
 			cout << " ********** OBTENER MATRIZ ********** " << endl;
 			cout << "Ingrese Ruta Destino + NombreDestino.txt:" << endl;
 			cin >> destino;
-			obtenerMatriz(valores,filas, columnas,f,c,tam, destino);
+			obtenerMatriz(valores,filas, columnas,f,c,destino);
 			cout << "Matriz Guardada Exitosamente En " << destino<<endl;
 			cin.get();
 			cin.get();
@@ -424,7 +372,7 @@ int main() {
 			cout << "Ingrese N° de Columna:" << endl;
 			cin >> j;
 			if(i<f && j<c)
-				printf("El elemento en la posición (%i,%i) es: %i\n",i,j,obtenerElemento(valores, filas, columnas, i, j, tam));
+				printf("El elemento en la posición (%i,%i) es: %i\n",i,j,obtenerElemento(valores, filas, columnas, i, j));
 			else
 				cout << "Ocurrió un Error. Intente de Nuevo con Indices Válidos"<<endl;
 			cin.get();
@@ -450,7 +398,7 @@ int main() {
 			cout << "Ingrese N° de Columna:" << endl;
 			cin >> j;
 			if(j<c)
-				obtenerColumna(valores, filas, columnas,j,f, tam);
+				obtenerColumna(valores, filas, columnas,j,f);
 			else
 				cout << "Ocurrió un Error. Intente de Nuevo con un Indice Válido"<<endl;
 			cin.get();
@@ -468,7 +416,7 @@ int main() {
 			cout << "Ingrese Ruta Destino + NombreDestino.txt:" << endl;
 			cin >> destino;
 			if(i<f && j<c){
-				modificarPosicion(valores, filas, columnas,i,j,e,tam,c+1,destino);
+				modificarPosicion(valores, filas, columnas,i,j,e,destino);
 				cout << "Matriz Modificada Guardada Exitosamente En " << destino<<endl;
 			}
 			else
@@ -482,7 +430,7 @@ int main() {
 			if(f==c){
 				cout << "Ingrese Ruta Destino + NombreDestino.txt:" << endl;
 				cin >> destino;
-				matrizCuadrada(valores, filas, columnas,f,c,tam,destino);
+				matrizCuadrada(valores, filas, columnas,f,c,destino);
 				cout << "Matriz Cuadrada Guardada Exitosamente En " << destino<<endl;
 			}else
 				cout << "La Matriz Debe Ser Cuadrada (nxn)" << endl;
@@ -495,7 +443,7 @@ int main() {
 			cout << " ******** MATRIZ TRANSPUESTA ******** " << endl;
 			cout << "Ingrese Ruta Destino + NombreDestino.txt:" << endl;
 			cin >> destino;
-			matrizTranspuesta(valores, filas, columnas,tam,c,destino);
+			matrizTranspuesta(valores, filas, columnas,destino);
 			cout << "Representación de Matriz Transpuesta Guardada Exitosamente En " << destino<<endl;
 			cin.get();
 			cin.get();
