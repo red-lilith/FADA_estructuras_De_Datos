@@ -198,7 +198,7 @@ void matrizCuadrada(vector<int> &val,vector<int> &fs,vector<int> &cls, int f, in
 
 		while(aux<c){
 			int valor=0;
-			for(int i=ini;i<fin;i++){ //vuelve a buscar con la columna 0 por la siguiente fila=aux
+			for(int i=ini;i<fin;i++){ //vuelve a buscar con la fila 0 por la siguiente columna=aux
 				for(int k=r;k<tamC;k++){
 					if(cls.at(k)==aux){
 						if(k>=fs.at(cls.at(i))&&k<fs.at(cls.at(i)+1)){

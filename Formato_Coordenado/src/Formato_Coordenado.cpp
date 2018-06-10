@@ -16,6 +16,8 @@
 #include<algorithm>
 #include <sstream>
 #include <fstream>
+#include <stdio.h>
+#include <string.h>
 using namespace std;
 
 void creaRepresentacion(int **matriz, vector<int> &val, vector<int> &fs,vector<int> &cls, int f, int c, string des){
@@ -59,12 +61,11 @@ void obtenerMatriz(vector<int> &val,vector<int> &fs,vector<int> &cls, int f, int
 	destino.open (des.c_str());
 	destino << f <<" "<<c<<endl;
 
-	int matriz[f][c]={0,0,0};
-	for(int i=0;i<f;i++){
-		for(int j=0;j<c;j++){
-			matriz[i][j]=0;
-		}
-	}
+	int **matriz = (int **) malloc(sizeof(int *) * f);
+	int *mem = (int*)malloc(sizeof(int) * (f * c));
+	memset(mem, 0x0, sizeof(int) * (f * c));
+	for (int i = 0; i < f; i++)
+		matriz[i] = mem + i * c;
 
 	for(int j=0;j<tam;j++)
 		matriz[fs.at(j)][cls.at(j)]=val.at(j);
@@ -118,34 +119,33 @@ void modificarPosicion(vector<int> &val,vector<int> &fs,vector<int> &cls, int fi
 	int tamF = fs.size();
 	ofstream destino;
 	destino.open (des.c_str());
-	for(int i=0;i<tamF;i++){
-		if(fs.at(i)==fila){
-			for(int j=i;j<tamF;j++){
-				if((cls.at(j)-1)==columna && fs.at(i)==fila){
-					val.insert(val.begin()+j, e);
-					fs.insert(fs.begin()+j, fila);
-					cls.insert(cls.begin()+j, columna);
-					tamF++;
-					break;
-				}
-				else if((cls.at(j)+1)==columna && fs.at(i)==fila){
-
-					val.insert(val.begin()+j+1, e);
-					fs.insert(fs.begin()+j+1, fila);
-					cls.insert(cls.begin()+j+1, columna);
-					tamF++;
-					break;
-				}
-				else if(cls.at(i)==columna && fs.at(i)==fila){
-					val.at(j)=e;
-					break;
-				}
-			}
+	bool x=true;
+	for (int i = 0; i < tamF; i++){
+		if(fs.at(i)==fila && cls.at(i)==columna){
+			val.at(i)=e;
+			x=false;
 			break;
 		}
-
-
 	}
+	if(x){
+		for (int i = 0; i < tamF; i++){
+			if((cls.at(i)-1)==columna && fs.at(i)==fila){
+				val.insert(val.begin()+i, e);
+				fs.insert(fs.begin()+i, fila);
+				cls.insert(cls.begin()+i, columna);
+				tamF++;
+				break;
+			}
+			else if((cls.at(i)+1)==columna && fs.at(i)==fila){
+				val.insert(val.begin()+i+1, e);
+				fs.insert(fs.begin()+i+1, fila);
+				cls.insert(cls.begin()+i+1, columna);
+				tamF++;
+				break;
+			}
+		}
+	}
+
 	destino << "Valores = [ ";
 	for(int i=0;i<tamF;i++){
 		destino << val.at(i) << " ";
@@ -169,12 +169,12 @@ void matrizCuadrada(vector<int> &val,vector<int> &fs,vector<int> &cls, int f, in
 	ofstream destino;
 	destino.open (des.c_str());
 	destino << f <<" "<<c<<endl;
-	int matriz[f][c]={0,0,0};
-	for(int i=0;i<f;i++){
-		for(int j=0;j<f;j++){
-			matriz[i][j]=0;
-		}
-	}
+
+	int **matriz = (int **) malloc(sizeof(int *) * f);
+	int *mem = (int*)malloc(sizeof(int) * (f * c));
+	memset(mem, 0x0, sizeof(int) * (f * c));
+	for (int i = 0; i < f; i++)
+		matriz[i] = mem + i * c;
 
 	int ini=0;
 	int index=0;
